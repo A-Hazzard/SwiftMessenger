@@ -16,7 +16,7 @@ A Telegram bot for sending international SMS messages with company branding and 
 ### 1. Prerequisites
 - Python 3.8 or higher
 - Telegram Bot Token (from @BotFather)
-- Twilio Account (for SMS service)
+- TextBelt API Key (for SMS service)
 
 ### 2. Installation
 ```bash
@@ -32,10 +32,9 @@ Create your own `config/config.json` file based on the `config/configExample.jso
 ```json
 {
     "telegram_bot_token": "YOUR_BOT_TOKEN",
-    "twilio": {
-        "account_sid": "YOUR_TWILIO_ACCOUNT_SID",
-        "auth_token": "YOUR_TWILIO_AUTH_TOKEN",
-        "phone_number": "YOUR_TWILIO_PHONE_NUMBER"
+    "textbelt": {
+        "api_key": "YOUR_TEXTBELT_API_KEY",
+        "api_url": "https://textbelt.com/text"
     },
     "company_name": "YOUR_COMPANY_NAME",
     "default_message": "Your default message here"
