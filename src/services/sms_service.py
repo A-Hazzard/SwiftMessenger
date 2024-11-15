@@ -1,24 +1,20 @@
-from twilio.rest import Client
-from twilio.base.exceptions import TwilioRestException
-from utils.config_loader import Config
+import requests
 import re
 import socket
-import requests
 import time
+from utils.config_loader import Config
 
 class SMSService:
     def __init__(self):
         self.config = Config()
-        self.client = Client(
-            self.config.get('twilio')['account_sid'],
-            self.config.get('twilio')['auth_token']
-        )
+        self.api_key = self.config.get('textbelt')['api_key']
+        self.api_url = self.config.get('textbelt')['api_url']
         
     def check_internet_connection(self) -> bool:
         """Check if there's an active internet connection."""
         try:
-            # Try to connect to Twilio's API
-            requests.get('https://api.twilio.com', timeout=5)
+            # Try to connect to TextBelt's API
+            requests.get('https://textbelt.com', timeout=5)
             return True
         except requests.RequestException:
             try:
@@ -41,10 +37,6 @@ class SMSService:
         if not self.validate_phone_number(to_number):
             return False, "Invalid phone number format. Use international format (e.g., +1234567890)"
         
-        # Add + if not present
-        if not to_number.startswith('+'):
-            to_number = '+' + to_number
-        
         # Check internet connection first
         if not self.check_internet_connection():
             return False, "No internet connection. Please check your network and try again."
@@ -58,26 +50,23 @@ class SMSService:
                 company_name = self.config.get('company_name')
                 full_message = f"{company_name}\n\n{message}"
                 
-                self.client.messages.create(
-                    body=full_message,
-                    from_=self.config.get('twilio')['phone_number'],
-                    to=to_number
-                )
-                return True, "Message sent successfully"
-                
-            except TwilioRestException as e:
-                error_code = str(e.code)
-                if error_code == "20003":  # Authentication Error
-                    return False, "Authentication failed. Please check your Twilio credentials."
-                elif error_code == "20404":  # Phone number not found
-                    return False, "The provided phone number is not valid or not supported."
-                elif error_code == "20429":  # Too many requests
-                    if attempt < max_retries - 1:
-                        time.sleep(retry_delay)
-                        continue
-                    return False, "Too many requests. Please try again later."
+                # Prepare the payload for TextBelt
+                payload = {
+                    'phone': to_number,
+                    'message': full_message,
+                    'key': self.api_key,
+                }
+
+                response = requests.post(self.api_url, json=payload)
+                result = response.json()
+
+                if result.get('success'):
+                    return True, "Message sent successfully"
                 else:
-                    return False, f"Twilio error: {str(e)}"
+                    error = result.get('error') or "Unknown error"
+                    if 'quota' in error.lower():
+                        return False, "SMS quota exceeded. Please check your TextBelt credits."
+                    return False, f"Failed to send message: {error}"
                     
             except requests.exceptions.RequestException as e:
                 if attempt < max_retries - 1:

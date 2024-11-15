@@ -1,111 +1,76 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import (
-    ContextTypes, ConversationHandler, MessageHandler, 
-    filters, CallbackQueryHandler, CommandHandler
-)
+from telegram.ext import ContextTypes, ConversationHandler
 from services.sms_service import SMSService
 from utils.config_loader import Config
+import logging
 
 # Conversation states
-CHOOSING_ACTION, ENTERING_NUMBERS, CONFIRMING = range(3)
+CHOOSING_ACTION, ENTERING_NUMBERS = range(2)
 
 sms_service = SMSService()
 config = Config()
 
-async def start_bulk_send(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Start bulk send process"""
-    await update.message.reply_text(
-        "Please enter phone numbers separated by commas.\n"
-        "Example: +1234567890, +9876543210"
-    )
-    return ENTERING_NUMBERS
+import logging
 
 async def handle_numbers(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle incoming phone numbers"""
-    numbers = [num.strip() for num in update.message.text.split(',')]
-    valid_numbers = []
-    invalid_numbers = []
-
-    for number in numbers:
-        if sms_service.validate_phone_number(number):
-            valid_numbers.append(number)
-        else:
-            invalid_numbers.append(number)
-
-    if invalid_numbers:
-        await update.message.reply_text(
-            f"Invalid numbers found: {', '.join(invalid_numbers)}\n"
-            "Please try again with valid numbers."
-        )
-        return ENTERING_NUMBERS
-
-    if not valid_numbers:
-        await update.message.reply_text(
-            "No valid numbers provided. Please enter valid phone numbers."
-        )
-        return ENTERING_NUMBERS
-
-    context.user_data['numbers'] = valid_numbers
-    keyboard = [[
-        InlineKeyboardButton("✅ Confirm", callback_data='confirm'),
-        InlineKeyboardButton("❌ Cancel", callback_data='cancel')
-    ]]
-    
-    await update.message.reply_text(
-        f"Ready to send to {len(valid_numbers)} numbers.\n"
-        "Would you like to proceed?",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
-    return CONFIRMING
-
-def get_bulk_send_handler():
-    """Create and return the bulk send conversation handler"""
-    return ConversationHandler(
-        entry_points=[CommandHandler("bulk_send", start_bulk_send)],
-        states={
-            ENTERING_NUMBERS: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_numbers)
-            ],
-            CONFIRMING: [CallbackQueryHandler(handle_confirmation)],
-        },
-        fallbacks=[CommandHandler("cancel", lambda u, c: ConversationHandler.END)]
-    )
-
-async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle bulk send confirmation callbacks"""
-    query = update.callback_query
-    await query.answer()
-    
-    if query.data == 'cancel':
-        await query.edit_message_text("Operation cancelled.")
-        return ConversationHandler.END
-    
-    if query.data == 'confirm':
-        numbers = context.user_data.get('numbers', [])
-        message = context.user_data.get('message', config.get('default_message'))
+    logging.info("Starting handle_numbers function")
+    try:
+        logging.info(f"Received input: {update.message.text}")
         
-        if not numbers:
-            await query.edit_message_text("No valid numbers to send SMS.")
-            return ConversationHandler.END
-            
-        # Send messages and collect results
-        results = []
+        numbers = [num.strip() for num in update.message.text.split(',')]
+        valid_numbers = []
+        invalid_numbers = []
+
         for number in numbers:
-            success, response = sms_service.send_sms(number, message)
-            status = "✅" if success else "❌"
-            results.append(f"{status} {number}: {response}")
-        
+            logging.info(f"Processing number: {number}")
+            if sms_service.validate_phone_number(number):
+                valid_numbers.append(number)
+            else:
+                invalid_numbers.append(number)
+
+        logging.info(f"Valid numbers: {valid_numbers}")
+        logging.info(f"Invalid numbers: {invalid_numbers}")
+
+        if invalid_numbers:
+            await update.message.reply_text(
+                f"Invalid numbers found: {', '.join(invalid_numbers)}\n"
+                "Please try again with valid numbers."
+            )
+            return ENTERING_NUMBERS
+
+        if not valid_numbers:
+            await update.message.reply_text(
+                "No valid numbers provided. Please enter valid phone numbers."
+            )
+            return ENTERING_NUMBERS
+
+        message = context.user_data.get('message', config.get('default_message'))
+        results = []
+        for number in valid_numbers:
+            try:
+                logging.info(f"Sending SMS to {number}")
+                success, response = sms_service.send_sms(number, message)
+                status = "✅" if success else "❌"
+                results.append(f"{status} {number}: {response}")
+                logging.info(f"Result for {number}: {response}")
+            except Exception as e:
+                logging.error(f"Error sending SMS to {number}: {e}")
+                results.append(f"❌ {number}: Error occurred")
+
         result_message = "SMS Sending Results:\n" + "\n".join(results)
-        
-        # Split message if it's too long
-        if len(result_message) > 4096:  # Telegram's message length limit
+        logging.info(f"Send results: {result_message}")
+
+        if len(result_message) > 4096:
             chunks = [result_message[i:i+4096] for i in range(0, len(result_message), 4096)]
             for chunk in chunks:
-                await query.message.reply_text(chunk)
+                await update.message.reply_text(chunk)
         else:
-            await query.edit_message_text(result_message)
-            
+            await update.message.reply_text(result_message)
+
+        logging.info("Ending handle_numbers function")
         return ConversationHandler.END
+    except Exception as e:
+        logging.error(f"Error in handle_numbers: {e}", exc_info=True)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show main menu with buttons"""
@@ -132,43 +97,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return CHOOSING_ACTION
 
-async def handle_message_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle message confirmation callbacks"""
-    query = update.callback_query
-    await query.answer()
-
-    if query.data == 'cancel_message':
-        await query.edit_message_text("Message setting cancelled.")
-        return ConversationHandler.END
-
-    if query.data == 'confirm_message':
-        message = context.user_data.get('pending_message')
-        if message:
-            context.user_data['message'] = message
-            await query.edit_message_text("✅ Message has been set successfully!")
-        else:
-            await query.edit_message_text("❌ Error: No message to set.")
-        return ConversationHandler.END
-
-async def handle_send_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle single send confirmation callbacks"""
-    query = update.callback_query
-    await query.answer()
-
-    if query.data == 'cancel_send':
-        await query.edit_message_text("SMS sending cancelled.")
-        return ConversationHandler.END
-
-    if query.data == 'confirm_send':
-        phone_number, message = context.user_data.get('pending_send', (None, None))
-        if phone_number and message:
-            success, response = sms_service.send_sms(phone_number, message)
-            status = "✅" if success else "❌"
-            await query.edit_message_text(f"{status} {response}")
-        else:
-            await query.edit_message_text("❌ Error: Missing phone number or message.")
-        return ConversationHandler.END
-
 async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle button presses"""
     text = update.message.text
@@ -184,4 +112,38 @@ async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "/send +1234567890"
         )
     elif text == "📲 Send Bulk SMS":
-        return await start_bulk_send(update, context)
+        await update.message.reply_text(
+            "Please enter phone numbers separated by commas.\n"
+            "Example: +1234567890, +9876543210"
+        )
+        return ENTERING_NUMBERS
+
+async def handle_send_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle confirmation of sending SMS"""
+    query = update.callback_query
+    await query.answer()  # Acknowledge the callback query
+
+    if query.data == 'confirm_send':
+        phone_number, message = context.user_data.get('pending_send', (None, None))
+        if phone_number and message:
+            success, response = sms_service.send_sms(phone_number, message)
+            await query.edit_message_text(f"Send result: {response}")
+        else:
+            await query.edit_message_text("No pending send found.")
+    elif query.data == 'cancel_send':
+        await query.edit_message_text("Send operation cancelled.")
+
+async def handle_message_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle confirmation of setting message"""
+    query = update.callback_query
+    await query.answer()  # Acknowledge the callback query
+
+    if query.data == 'confirm_message':
+        message = context.user_data.get('pending_message')
+        if message:
+            context.user_data['message'] = message
+            await query.edit_message_text("Message set successfully.")
+        else:
+            await query.edit_message_text("No pending message found.")
+    elif query.data == 'cancel_message':
+        await query.edit_message_text("Message setting cancelled.")

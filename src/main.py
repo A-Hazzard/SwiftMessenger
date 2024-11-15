@@ -1,20 +1,23 @@
 import logging
 import sys
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler
-from bot.handlers import (
-    start, handle_button, get_bulk_send_handler, 
-    handle_send_confirmation, handle_message_confirmation
-)
+from bot.handlers import start, handle_button, handle_numbers, handle_send_confirmation, handle_message_confirmation
 from bot.commands import send, set_message
 from utils.config_loader import Config
 
+# Configure logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
+    level=logging.DEBUG,  # Set to DEBUG to capture detailed logs
+    handlers=[
+        logging.StreamHandler(sys.stdout),  # Log to console
+        logging.FileHandler("bot.log")  # Log to a file
+    ]
 )
 
 def main():
     try:
+        logging.info("Starting SMS Sender Bot...")
         config = Config()
         bot_token = config.get('telegram_bot_token')
         logging.info(f"Using bot token: {bot_token}")
@@ -32,12 +35,16 @@ def main():
         app.add_handler(CommandHandler("start", start))
         app.add_handler(CommandHandler("send", send))
         app.add_handler(CommandHandler("set_message", set_message))
-        app.add_handler(get_bulk_send_handler())
         
         # Add button handler
         app.add_handler(MessageHandler(
             filters.TEXT & filters.Regex('^(📝 Set Message|📱 Send Single SMS|📲 Send Bulk SMS)$'),
             handle_button
+        ))
+        
+        # Add message handler for entering numbers
+        app.add_handler(MessageHandler(
+            filters.TEXT & ~filters.COMMAND, handle_numbers
         ))
         
         # Add callback query handlers
