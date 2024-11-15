@@ -26,7 +26,7 @@ pip install -r requirements.txt
 ```
 
 ### 3. Configuration
-Create or modify `config/config.json`:
+Create your own `config/config.json` file based on the `config/configExample.json` template:
 ```json
 {
     "telegram_bot_token": "YOUR_BOT_TOKEN",
@@ -39,6 +39,8 @@ Create or modify `config/config.json`:
     "default_message": "Your default message here"
 }
 ```
+- Copy `config/configExample.json` to `config/config.json`.
+- Replace the placeholder values with your actual credentials and settings.
 
 ### 4. Run the Bot
 ```bash
@@ -65,8 +67,8 @@ python src/main.py
 - Example: +1234567890, +447911123456, +61412345678
 
 ## Important Notes
-- All credentials are stored in config.json for easy updates
-- If an account gets banned, simply update the credentials in config.json
+- All credentials are stored in `config.json` for easy updates
+- If an account gets banned, simply update the credentials in `config.json`
 - Messages will display your company name at the top
 - Supports international SMS to any country
 
