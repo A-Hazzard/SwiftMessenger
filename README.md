@@ -1,3 +1,5 @@
+![Logo](./assets/logo.jpg)
+
 # SMS Sender Telegram Bot
 
 A Telegram bot for sending international SMS messages with company branding and easy configuration.
