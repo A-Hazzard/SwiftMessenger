@@ -19,7 +19,7 @@ A Telegram bot for sending international SMS messages with company branding and 
 ### 2. Installation
 ```bash
 # Clone the repository
-git clone [repository-url]
+git clone https://github.com/A-Hazzard/SwitftMessenger.git
 
 # Install dependencies
 pip install -r requirements.txt
@@ -71,9 +71,3 @@ python src/main.py
 - If an account gets banned, simply update the credentials in `config.json`
 - Messages will display your company name at the top
 - Supports international SMS to any country
-
-## Support
-For testing purposes ($10-15 testing budget), please contact support with:
-- Test results
-- Transaction proof
-- Binance wallet address
