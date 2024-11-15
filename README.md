@@ -1,0 +1,77 @@
+# SMS Sender Telegram Bot
+
+A Telegram bot for sending international SMS messages with company branding and easy configuration.
+
+## Features
+- 📱 Button-based interface for easy operation
+- 🌍 International SMS support with company name header
+- 📨 Single and bulk SMS sending capabilities
+- ⚙️ Easy configuration via config.json
+- 🔄 Quick API credentials update if needed
+
+## Setup
+
+### 1. Prerequisites
+- Python 3.8 or higher
+- Telegram Bot Token (from @BotFather)
+- Twilio Account (for SMS service)
+
+### 2. Installation
+```bash
+# Clone the repository
+git clone [repository-url]
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 3. Configuration
+Create or modify `config/config.json`:
+```json
+{
+    "telegram_bot_token": "YOUR_BOT_TOKEN",
+    "twilio": {
+        "account_sid": "YOUR_TWILIO_ACCOUNT_SID",
+        "auth_token": "YOUR_TWILIO_AUTH_TOKEN",
+        "phone_number": "YOUR_TWILIO_PHONE_NUMBER"
+    },
+    "company_name": "YOUR_COMPANY_NAME",
+    "default_message": "Your default message here"
+}
+```
+
+### 4. Run the Bot
+```bash
+python src/main.py
+```
+
+## Usage
+
+### Main Menu Buttons
+- 📝 Set Message - Configure your SMS message
+- 📱 Send Single SMS - Send to one number
+- 📲 Send Bulk SMS - Send to multiple numbers
+
+### SMS Format
+- Numbers must be in international format (E.164)
+- Examples: 
+  - +1234567890 (US)
+  - +447911123456 (UK)
+  - +61412345678 (Australia)
+- Company name appears automatically at the top of each message
+
+### Bulk Sending
+- Enter multiple numbers separated by commas
+- Example: +1234567890, +447911123456, +61412345678
+
+## Important Notes
+- All credentials are stored in config.json for easy updates
+- If an account gets banned, simply update the credentials in config.json
+- Messages will display your company name at the top
+- Supports international SMS to any country
+
+## Support
+For testing purposes ($10-15 testing budget), please contact support with:
+- Test results
+- Transaction proof
+- Binance wallet address

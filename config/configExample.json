@@ -1,0 +1,10 @@
+{
+    "telegram_bot_token": "YOUR_TELEGRAM_BOT_TOKEN",
+    "twilio": {
+        "account_sid": "YOUR_TWILIO_ACCOUNT_SID",
+        "auth_token": "YOUR_TWILIO_AUTH_TOKEN",
+        "phone_number": "YOUR_TWILIO_PHONE_NUMBER"
+    },
+    "company_name": "YOUR_COMPANY_NAME",
+    "default_message": "Your default message here"
+}

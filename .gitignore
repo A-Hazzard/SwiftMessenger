@@ -1,0 +1,23 @@
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+config/config.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE settings (optional but recommended)
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Operating System
+.DS_Store
+Thumbs.db
