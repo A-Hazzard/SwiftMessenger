@@ -1,6 +1,5 @@
 import json
 import os
-import logging
 
 class Config:
     _instance = None
@@ -19,7 +18,7 @@ class Config:
         try:
             with open(config_path, 'r') as f:
                 cls._config = json.load(f)
-                logging.info("Configuration loaded successfully.")
+                print("Configuration loaded successfully.")
         except FileNotFoundError:
             raise Exception(f"Configuration file not found at {config_path}")
         except json.JSONDecodeError:

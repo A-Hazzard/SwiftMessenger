@@ -2,7 +2,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.ext import ContextTypes, ConversationHandler
 from services.sms_service import SMSService
 from utils.config_loader import Config
-import logging
 
 # Conversation states
 CHOOSING_ACTION, ENTERING_NUMBERS = range(2)
@@ -10,26 +9,24 @@ CHOOSING_ACTION, ENTERING_NUMBERS = range(2)
 sms_service = SMSService()
 config = Config()
 
-import logging
-
 async def handle_numbers(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logging.info("Starting handle_numbers function")
+    print("Starting handle_numbers function")
     try:
-        logging.info(f"Received input: {update.message.text}")
+        print(f"Received input: {update.message.text}")
         
         numbers = [num.strip() for num in update.message.text.split(',')]
         valid_numbers = []
         invalid_numbers = []
 
         for number in numbers:
-            logging.info(f"Processing number: {number}")
+            print(f"Processing number: {number}")
             if sms_service.validate_phone_number(number):
                 valid_numbers.append(number)
             else:
                 invalid_numbers.append(number)
 
-        logging.info(f"Valid numbers: {valid_numbers}")
-        logging.info(f"Invalid numbers: {invalid_numbers}")
+        print(f"Valid numbers: {valid_numbers}")
+        print(f"Invalid numbers: {invalid_numbers}")
 
         if invalid_numbers:
             await update.message.reply_text(
@@ -48,17 +45,17 @@ async def handle_numbers(update: Update, context: ContextTypes.DEFAULT_TYPE):
         results = []
         for number in valid_numbers:
             try:
-                logging.info(f"Sending SMS to {number}")
+                print(f"Sending SMS to {number}")
                 success, response = sms_service.send_sms(number, message)
                 status = "✅" if success else "❌"
                 results.append(f"{status} {number}: {response}")
-                logging.info(f"Result for {number}: {response}")
+                print(f"Result for {number}: {response}")
             except Exception as e:
-                logging.error(f"Error sending SMS to {number}: {e}")
+                print(f"Error sending SMS to {number}: {e}")
                 results.append(f"❌ {number}: Error occurred")
 
         result_message = "SMS Sending Results:\n" + "\n".join(results)
-        logging.info(f"Send results: {result_message}")
+        print(f"Send results: {result_message}")
 
         if len(result_message) > 4096:
             chunks = [result_message[i:i+4096] for i in range(0, len(result_message), 4096)]
@@ -67,10 +64,10 @@ async def handle_numbers(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await update.message.reply_text(result_message)
 
-        logging.info("Ending handle_numbers function")
+        print("Ending handle_numbers function")
         return ConversationHandler.END
     except Exception as e:
-        logging.error(f"Error in handle_numbers: {e}", exc_info=True)
+        print(f"Error in handle_numbers: {e}")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show main menu with buttons"""

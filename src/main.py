@@ -1,26 +1,15 @@
-import logging
 import sys
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from bot.handlers import start, handle_button, handle_numbers, handle_send_confirmation, handle_message_confirmation
 from bot.commands import send, set_message
 from utils.config_loader import Config
 
-# Configure logging
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.DEBUG,  # Set to DEBUG to capture detailed logs
-    handlers=[
-        logging.StreamHandler(sys.stdout),  # Log to console
-        logging.FileHandler("bot.log")  # Log to a file
-    ]
-)
-
 def main():
     try:
-        logging.info("Starting SMS Sender Bot...")
+        print("Starting SMS Sender Bot...")
         config = Config()
         bot_token = config.get('telegram_bot_token')
-        logging.info(f"Using bot token: {bot_token}")
+        print(f"Using bot token: {bot_token}")
         
         app = (ApplicationBuilder()
                .token(bot_token)
@@ -51,14 +40,14 @@ def main():
         app.add_handler(CallbackQueryHandler(handle_send_confirmation, pattern='^(confirm_send|cancel_send)$'))
         app.add_handler(CallbackQueryHandler(handle_message_confirmation, pattern='^(confirm_message|cancel_message)$'))
         
-        logging.info("Bot is starting...")
+        print("Bot is starting...")
         app.run_polling(
             poll_interval=1.0,
             timeout=30,
             drop_pending_updates=True
         )
     except Exception as e:
-        logging.error(f"Fatal error: {str(e)}", exc_info=True)
+        print(f"Fatal error: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":
