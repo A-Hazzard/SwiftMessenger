@@ -2,21 +2,21 @@
 
 # SMS Sender Telegram Bot
 
-A Telegram bot for sending international SMS messages with company branding and easy configuration.
+A Telegram bot for sending international SMS messages with company branding and easy configuration using Twilio.
 
 ## Features
 - 📱 Button-based interface for easy operation
 - 🌍 International SMS support with company name header
 - 📨 Single and bulk SMS sending capabilities
 - ⚙️ Easy configuration via config.json
-- 🔄 Quick API credentials update if needed
+- 🔄 Powered by Twilio's reliable SMS infrastructure
 
 ## Setup
 
 ### 1. Prerequisites
 - Python 3.8 or higher
 - Telegram Bot Token (from @BotFather)
-- TextBelt API Key (for SMS service)
+- Twilio Account (SID, Auth Token, and Phone Number)
 
 ### 2. Installation
 ```bash
@@ -32,16 +32,18 @@ Create your own `config/config.json` file based on the `config/configExample.jso
 ```json
 {
     "telegram_bot_token": "YOUR_BOT_TOKEN",
-    "textbelt": {
-        "api_key": "YOUR_TEXTBELT_API_KEY",
-        "api_url": "https://textbelt.com/text"
+    "twilio": {
+        "account_sid": "YOUR_TWILIO_ACCOUNT_SID",
+        "auth_token": "YOUR_TWILIO_AUTH_TOKEN",
+        "from_number": "YOUR_TWILIO_PHONE_NUMBER"
     },
     "company_name": "YOUR_COMPANY_NAME",
     "default_message": "Your default message here"
 }
 ```
-- Copy `config/configExample.json` to `config/config.json`.
-- Replace the placeholder values with your actual credentials and settings.
+- Copy `config/configExample.json` to `config/config.json`
+- Replace the placeholder values with your actual credentials and settings
+- Get your Twilio credentials from your Twilio Console Dashboard
 
 ### 4. Run the Bot
 ```bash
@@ -69,6 +71,6 @@ python src/main.py
 
 ## Important Notes
 - All credentials are stored in `config.json` for easy updates
-- If an account gets banned, simply update the credentials in `config.json`
 - Messages will display your company name at the top
-- Supports international SMS to any country
+- Supports international SMS to any country where Twilio operates
+- Make sure to maintain sufficient Twilio credits for sending messages

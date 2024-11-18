@@ -1,8 +1,9 @@
 {
     "telegram_bot_token": "YOUR_TELEGRAM_BOT_TOKEN",
-    "textbelt": {
-        "api_key": "YOUR_TEXTBELT_API_KEY",
-        "api_url": "https://textbelt.com/text"
+    "twilio": {
+        "account_sid": "YOUR_TWILIO_ACCOUNT_SID",
+        "auth_token": "YOUR_TWILIO_AUTH_TOKEN",
+        "from_number": "YOUR_TWILIO_PHONE_NUMBER"
     },
     "company_name": "YOUR_COMPANY_NAME",
     "default_message": "Your default message here"
